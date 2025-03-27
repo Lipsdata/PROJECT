@@ -13,7 +13,9 @@
 #include <string.h>
 #include "common.h"
 
-
+#ifndef MAX_MAP_SIZE
+#define MAX_MAP_SIZE 1024  // 最大特征图大小 (32x32)
+#endif
 
 
 // 声明 activation_func 结构体，实现在 hls.cpp 中
