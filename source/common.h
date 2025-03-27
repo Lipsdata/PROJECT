@@ -12,7 +12,7 @@
 
 #define uchar unsigned char
 
-// Constants for CNN architecture
+// CNN架构的常量定义
 #define MAX_INPUT_SIZE 1024   
 #define MAX_C1_SIZE 784       
 #define MAX_C1_COUNT 6        
@@ -44,54 +44,70 @@ typedef struct _Sample
 	int sample_count;
 } Sample;
 
-// 第一个结构体包含所有整数参数
-typedef struct _Layer1
+// 网络参数结构体
+typedef struct _NetworkParams
 {
-    int map_w;
-    int map_h;
-    int map_count;
-    int kernel_w;
-    int kernel_h;
-    int kernel_count;
-} Layer1;
+    int map_w;        // 特征图宽度
+    int map_h;        // 特征图高度
+    int map_count;    // 特征图数量
+    int kernel_w;     // 卷积核宽度
+    int kernel_h;     // 卷积核高度
+    int kernel_count; // 卷积核数量
+} NetworkParams;
 
-// 第二个结构体包含所有数组数据 - 仅推理所需
-typedef struct _Layer2
+// 输入层结构体 - 1个通道，32x32
+typedef struct _InputLayer
 {
-    // 卷积核权重 - 每层独立存储
-    float c1_W[MAX_C1_KERNEL_COUNT][MAX_KERNEL_SIZE];  
-    float c3_W[MAX_C3_KERNEL_COUNT][MAX_KERNEL_SIZE];  
-    float c5_W[MAX_C5_KERNEL_COUNT][MAX_KERNEL_SIZE];  
-    float output_W[MAX_OUTPUT_KERNEL_COUNT][MAX_KERNEL_SIZE]; 
-    
-    float map_common[MAX_INPUT_SIZE]; 
-    
-    // 输入层 - 1个通道，32x32
-    float input_data[1][MAX_INPUT_SIZE];
-    
-    // C1层 - 6个通道，28x28
-    float c1_data[MAX_C1_COUNT][MAX_C1_SIZE];
-    float c1_b[MAX_C1_COUNT];
-    
-    // S2层 - 6个通道，14x14
-    float s2_data[MAX_S2_COUNT][MAX_S2_SIZE];
-    float s2_b[MAX_S2_COUNT];
-    
-    // C3层 - 16个通道，10x10
-    float c3_data[MAX_C3_COUNT][MAX_C3_SIZE];
-    float c3_b[MAX_C3_COUNT];
-    
-    // S4层 - 16个通道，5x5
-    float s4_data[MAX_S4_COUNT][MAX_S4_SIZE];
-    float s4_b[MAX_S4_COUNT];
-    
-    // C5层 - 120个通道，1x1
-    float c5_data[MAX_C5_COUNT];
-    float c5_b[MAX_C5_COUNT];
-    
-    // 输出层 - 10个通道，1x1
-    float output_data[MAX_OUTPUT_COUNT];
-    float output_b[MAX_OUTPUT_COUNT];
-} Layer2;
+    float data[1][MAX_INPUT_SIZE];  // 输入数据
+    float map_common[MAX_INPUT_SIZE]; // 公共映射区域
+} InputLayer;
+
+// C1卷积层结构体 - 6个通道，28x28
+typedef struct _C1Layer
+{
+    float data[MAX_C1_COUNT][MAX_C1_SIZE];  // 卷积层输出数据
+    float b[MAX_C1_COUNT];                  // 偏置值
+    float W[MAX_C1_KERNEL_COUNT][MAX_KERNEL_SIZE]; // 卷积核权重
+} C1Layer;
+
+// S2池化层结构体 - 6个通道，14x14
+typedef struct _S2Layer
+{
+    float data[MAX_S2_COUNT][MAX_S2_SIZE];  // 池化层输出数据
+    float b[MAX_S2_COUNT];                  // 偏置值
+    float map_common[MAX_INPUT_SIZE];       // 公共映射区域
+} S2Layer;
+
+// C3卷积层结构体 - 16个通道，10x10
+typedef struct _C3Layer
+{
+    float data[MAX_C3_COUNT][MAX_C3_SIZE];  // 卷积层输出数据
+    float b[MAX_C3_COUNT];                  // 偏置值
+    float W[MAX_C3_KERNEL_COUNT][MAX_KERNEL_SIZE]; // 卷积核权重
+} C3Layer;
+
+// S4池化层结构体 - 16个通道，5x5
+typedef struct _S4Layer
+{
+    float data[MAX_S4_COUNT][MAX_S4_SIZE];  // 池化层输出数据
+    float b[MAX_S4_COUNT];                  // 偏置值
+    float map_common[MAX_INPUT_SIZE];       // 公共映射区域
+} S4Layer;
+
+// C5全连接层结构体 - 120个通道，1x1
+typedef struct _C5Layer
+{
+    float data[MAX_C5_COUNT];              // 全连接层输出数据
+    float b[MAX_C5_COUNT];                 // 偏置值
+    float W[MAX_C5_KERNEL_COUNT][MAX_KERNEL_SIZE]; // 权重
+} C5Layer;
+
+// 输出层结构体 - 10个通道，1x1
+typedef struct _OutputLayer
+{
+    float data[MAX_OUTPUT_COUNT];           // 输出数据
+    float b[MAX_OUTPUT_COUNT];              // 偏置值
+    float W[MAX_OUTPUT_KERNEL_COUNT][MAX_KERNEL_SIZE]; // 权重
+} OutputLayer;
 
 #endif // COMMON_H
