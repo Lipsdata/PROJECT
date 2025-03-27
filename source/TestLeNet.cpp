@@ -65,72 +65,338 @@ layer1->map_count = map_count;
 layer1->map_w = map_w;
 layer1->map_h = map_h;
 
-// Check limits
-if (layer1->kernel_count > MAX_KERNEL_COUNT) {
-printf("Error: kernel_count exceeds MAX_KERNEL_COUNT\n");
-return;
+// Initialize kernels based on the layer type
+if (prevlayer_map_count == 0 && map_count == 1) {
+    // 输入层，不需要初始化卷积核
+} 
+else if (map_count == MAX_C1_COUNT) {
+    // C1层卷积核
+    if (layer1->kernel_count > MAX_C1_KERNEL_COUNT) {
+        printf("Error: C1 kernel_count exceeds MAX_C1_KERNEL_COUNT\n");
+        return;
+    }
+    
+    for (int i = 0; i < prevlayer_map_count; i++) {
+        for (int j = 0; j < map_count; j++) {
+            int idx = i*map_count + j;
+            for (int k = 0; k < kernel_w*kernel_h; k++) {
+                layer2->c1_W[idx][k] = (genrand_real1() - 0.5) * 2 * weight_base;
+                //layer2->c1_dW[idx][k] = 0.0;
+            }
+        }
+    }
+} 
+else if (map_count == MAX_C3_COUNT) {
+    // C3层卷积核
+    if (layer1->kernel_count > MAX_C3_KERNEL_COUNT) {
+        printf("Error: C3 kernel_count exceeds MAX_C3_KERNEL_COUNT\n");
+        return;
+    }
+    
+    for (int i = 0; i < prevlayer_map_count; i++) {
+        for (int j = 0; j < map_count; j++) {
+            int idx = i*map_count + j;
+            for (int k = 0; k < kernel_w*kernel_h; k++) {
+                layer2->c3_W[idx][k] = (genrand_real1() - 0.5) * 2 * weight_base;
+                //layer2->c3_dW[idx][k] = 0.0;
+            }
+        }
+    }
+} 
+else if (map_count == MAX_C5_COUNT) {
+    // C5层卷积核
+    if (layer1->kernel_count > MAX_C5_KERNEL_COUNT) {
+        printf("Error: C5 kernel_count exceeds MAX_C5_KERNEL_COUNT\n");
+        return;
+    }
+    
+    for (int i = 0; i < prevlayer_map_count; i++) {
+        for (int j = 0; j < map_count; j++) {
+            int idx = i*map_count + j;
+            for (int k = 0; k < kernel_w*kernel_h; k++) {
+                layer2->c5_W[idx][k] = (genrand_real1() - 0.5) * 2 * weight_base;
+                //layer2->c5_dW[idx][k] = 0.0;
+            }
+        }
+    }
+} 
+else if (map_count == MAX_OUTPUT_COUNT) {
+    // 输出层卷积核
+    if (layer1->kernel_count > MAX_OUTPUT_KERNEL_COUNT) {
+        printf("Error: Output kernel_count exceeds MAX_OUTPUT_KERNEL_COUNT\n");
+        return;
+    }
+    
+    for (int i = 0; i < prevlayer_map_count; i++) {
+        for (int j = 0; j < map_count; j++) {
+            int idx = i*map_count + j;
+            for (int k = 0; k < kernel_w*kernel_h; k++) {
+                layer2->output_W[idx][k] = (genrand_real1() - 0.5) * 2 * weight_base;
+                //layer2->output_dW[idx][k] = 0.0;
+            }
+        }
+    }
+} 
+else if (is_pooling) {
+    // S2和S4层不需要卷积核
+} 
+else {
+    printf("Error: Unsupported layer configuration for kernel initialization\n");
+    return;
 }
 
-if (layer1->map_count > MAX_MAP_COUNT) {
-printf("Error: map_count exceeds MAX_MAP_COUNT\n");
-return;
+// 初始化不同层的特征图和偏置
+int size = map_w * map_h;
+
+// 输入层
+if (prevlayer_map_count == 0 && map_count == 1) {
+    if (size > MAX_INPUT_SIZE) {
+        printf("Error: input size exceeds MAX_INPUT_SIZE\n");
+        return;
+    }
+    
+    for (int k = 0; k < size; k++) {
+        layer2->input_data[0][k] = 0.0;
+        //layer2->input_error[0][k] = 0.0;
+    }
+}
+// C1层
+else if (map_count == MAX_C1_COUNT) {
+    if (size > MAX_C1_SIZE) {
+        printf("Error: C1 size exceeds MAX_C1_SIZE\n");
+        return;
+    }
+    
+    for (int i = 0; i < map_count; i++) {
+        layer2->c1_b[i] = 0.0;
+       // layer2->c1_db[i] = 0.0;
+        
+        for (int k = 0; k < size; k++) {
+            layer2->c1_data[i][k] = 0.0;
+            //layer2->c1_error[i][k] = 0.0;
+        }
+    }
+}
+// S2层
+else if (map_count == MAX_S2_COUNT && is_pooling) {
+    if (size > MAX_S2_SIZE) {
+        printf("Error: S2 size exceeds MAX_S2_SIZE\n");
+        return;
+    }
+    
+    for (int i = 0; i < map_count; i++) {
+        layer2->s2_b[i] = 0.0;
+        //layer2->s2_db[i] = 0.0;
+        
+        for (int k = 0; k < size; k++) {
+            layer2->s2_data[i][k] = 0.0;
+           // layer2->s2_error[i][k] = 0.0;
+        }
+    }
+}
+// C3层
+else if (map_count == MAX_C3_COUNT) {
+    if (size > MAX_C3_SIZE) {
+        printf("Error: C3 size exceeds MAX_C3_SIZE\n");
+        return;
+    }
+    
+    for (int i = 0; i < map_count; i++) {
+        layer2->c3_b[i] = 0.0;
+        //layer2->c3_db[i] = 0.0;
+        
+        for (int k = 0; k < size; k++) {
+            layer2->c3_data[i][k] = 0.0;
+            //layer2->c3_error[i][k] = 0.0;
+        }
+    }
+}
+// S4层
+else if (map_count == MAX_S4_COUNT && is_pooling) {
+    if (size > MAX_S4_SIZE) {
+        printf("Error: S4 size exceeds MAX_S4_SIZE\n");
+        return;
+    }
+    
+    for (int i = 0; i < map_count; i++) {
+        layer2->s4_b[i] = 0.0;
+        //layer2->s4_db[i] = 0.0;
+        
+        for (int k = 0; k < size; k++) {
+            layer2->s4_data[i][k] = 0.0;
+            //layer2->s4_error[i][k] = 0.0;
+        }
+    }
+}
+// C5层
+else if (map_count == MAX_C5_COUNT) {
+    for (int i = 0; i < map_count; i++) {
+        layer2->c5_data[i] = 0.0;
+        //layer2->c5_error[i] = 0.0;
+        layer2->c5_b[i] = 0.0;
+        //layer2->c5_db[i] = 0.0;
+    }
+}
+// 输出层
+else if (map_count == MAX_OUTPUT_COUNT) {
+    for (int i = 0; i < map_count; i++) {
+        layer2->output_data[i] = 0.0;
+        //layer2->output_error[i] = 0.0;
+        layer2->output_b[i] = 0.0;
+        //layer2->output_db[i] = 0.0;
+    }
+}
+else {
+    printf("Error: Unsupported layer configuration\n");
+    return;
 }
 
-if (map_w * map_h > MAX_MAP_SIZE) {
-printf("Error: map size exceeds MAX_MAP_SIZE\n");
-return;
-}
-
-// Initialize Layer2 (arrays)
-for (int i = 0; i < prevlayer_map_count; i++)
-{
-for (int j = 0; j < map_count; j++)
-{
- int idx = i*map_count + j;
- for (int k = 0; k < kernel_w*kernel_h; k++) {
-	 layer2->W[idx][k] = (genrand_real1() - 0.5) * 2 * weight_base;
-	 layer2->dW[idx][k] = 0.0;
- }
-}
-}
-
-for (int i = 0; i < layer1->map_count; i++)
-{
-layer2->b[i] = 0.0;
-layer2->db[i] = 0.0;
-
-for (int k = 0; k < map_w * map_h; k++) {
- layer2->data[i][k] = 0.0;
- layer2->error[i][k] = 0.0;
-}
-}
-
-for (int k = 0; k < map_w * map_h; k++) {
-layer2->map_common[k] = 0.0;
+// 初始化共享的map_common
+for (int k = 0; k < MAX_INPUT_SIZE; k++) {
+    layer2->map_common[k] = 0.0;
 }
 }
 
 void release_layer(Layer1 *layer1, Layer2 *layer2)
 {
-    for (int i = 0; i < layer1->kernel_count; i++)
-    {
-        for (int k = 0; k < layer1->kernel_w * layer1->kernel_h; k++) {
-            layer2->W[i][k] = 0.0;
-            layer2->dW[i][k] = 0.0;
+    int kernel_w = layer1->kernel_w;
+    int kernel_h = layer1->kernel_h;
+    int prevlayer_map_count = 0;
+    int map_count = layer1->map_count;
+    
+    // 计算prevlayer_map_count
+    if (layer1->kernel_count > 0 && map_count > 0) {
+        prevlayer_map_count = layer1->kernel_count / map_count;
+    }
+    
+    // 释放卷积核权重
+    if (map_count == MAX_C1_COUNT) {
+        // C1层卷积核
+        for (int i = 0; i < prevlayer_map_count; i++) {
+            for (int j = 0; j < map_count; j++) {
+                int idx = i*map_count + j;
+                for (int k = 0; k < kernel_w*kernel_h; k++) {
+                    layer2->c1_W[idx][k] = 0.0;
+                   // layer2->c1_dW[idx][k] = 0.0;
+                }
+            }
+        }
+    }
+    else if (map_count == MAX_C3_COUNT) {
+        // C3层卷积核
+        for (int i = 0; i < prevlayer_map_count; i++) {
+            for (int j = 0; j < map_count; j++) {
+                int idx = i*map_count + j;
+                for (int k = 0; k < kernel_w*kernel_h; k++) {
+                    layer2->c3_W[idx][k] = 0.0;
+                   // layer2->c3_dW[idx][k] = 0.0;
+                }
+            }
+        }
+    }
+    else if (map_count == MAX_C5_COUNT) {
+        // C5层卷积核
+        for (int i = 0; i < prevlayer_map_count; i++) {
+            for (int j = 0; j < map_count; j++) {
+                int idx = i*map_count + j;
+                for (int k = 0; k < kernel_w*kernel_h; k++) {
+                    layer2->c5_W[idx][k] = 0.0;
+                    //layer2->c5_dW[idx][k] = 0.0;
+                }
+            }
+        }
+    }
+    else if (map_count == MAX_OUTPUT_COUNT) {
+        // 输出层卷积核
+        for (int i = 0; i < prevlayer_map_count; i++) {
+            for (int j = 0; j < map_count; j++) {
+                int idx = i*map_count + j;
+                for (int k = 0; k < kernel_w*kernel_h; k++) {
+                    layer2->output_W[idx][k] = 0.0;
+                    //layer2->output_dW[idx][k] = 0.0;
+                }
+            }
         }
     }
 
-    for (int i = 0; i < layer1->map_count; i++)
-    {
-        for (int k = 0; k < layer1->map_w * layer1->map_h; k++) {
-            layer2->data[i][k] = 0.0;
-            layer2->error[i][k] = 0.0;
+    int size = layer1->map_w * layer1->map_h;
+
+    // 输入层
+    if (map_count == 1 && size <= MAX_INPUT_SIZE) {
+        for (int k = 0; k < size; k++) {
+            layer2->input_data[0][k] = 0.0;
+            //layer2->input_error[0][k] = 0.0;
         }
-        layer2->b[i] = 0.0;
-        layer2->db[i] = 0.0;
+    }
+    // C1层
+    else if (map_count == MAX_C1_COUNT && size <= MAX_C1_SIZE) {
+        for (int i = 0; i < map_count; i++) {
+            layer2->c1_b[i] = 0.0;
+            //layer2->c1_db[i] = 0.0;
+            
+            for (int k = 0; k < size; k++) {
+                layer2->c1_data[i][k] = 0.0;
+                //layer2->c1_error[i][k] = 0.0;
+            }
+        }
+    }
+    // S2层
+    else if (map_count == MAX_S2_COUNT && size <= MAX_S2_SIZE) {
+        for (int i = 0; i < map_count; i++) {
+            layer2->s2_b[i] = 0.0;
+            //layer2->s2_db[i] = 0.0;
+            
+            for (int k = 0; k < size; k++) {
+                layer2->s2_data[i][k] = 0.0;
+                //layer2->s2_error[i][k] = 0.0;
+            }
+        }
+    }
+    // C3层
+    else if (map_count == MAX_C3_COUNT && size <= MAX_C3_SIZE) {
+        for (int i = 0; i < map_count; i++) {
+            layer2->c3_b[i] = 0.0;
+            //layer2->c3_db[i] = 0.0;
+            
+            for (int k = 0; k < size; k++) {
+                layer2->c3_data[i][k] = 0.0;
+                //layer2->c3_error[i][k] = 0.0;
+            }
+        }
+    }
+    // S4层
+    else if (map_count == MAX_S4_COUNT && size <= MAX_S4_SIZE) {
+        for (int i = 0; i < map_count; i++) {
+            layer2->s4_b[i] = 0.0;
+            //layer2->s4_db[i] = 0.0;
+            
+            for (int k = 0; k < size; k++) {
+                layer2->s4_data[i][k] = 0.0;
+                //layer2->s4_error[i][k] = 0.0;
+            }
+        }
+    }
+    // C5层
+    else if (map_count == MAX_C5_COUNT) {
+        for (int i = 0; i < map_count; i++) {
+            layer2->c5_data[i] = 0.0;
+            //layer2->c5_error[i] = 0.0;
+            layer2->c5_b[i] = 0.0;
+           // layer2->c5_db[i] = 0.0;
+        }
+    }
+    // 输出层
+    else if (map_count == MAX_OUTPUT_COUNT) {
+        for (int i = 0; i < map_count; i++) {
+            layer2->output_data[i] = 0.0;
+           // layer2->output_error[i] = 0.0;
+            layer2->output_b[i] = 0.0;
+            //layer2->output_db[i] = 0.0;
+        }
     }
     
-    for (int k = 0; k < layer1->map_w * layer1->map_h; k++) {
+    // 释放共享的map_common
+    for (int k = 0; k < MAX_INPUT_SIZE; k++) {
         layer2->map_common[k] = 0.0;
     }
 }
@@ -352,12 +618,12 @@ void forward_propagation(xmem_t *xmem)
 int find_index(Layer1 *layer1, Layer2 *layer2)
 {
     int index = 0;
-    float max_val = layer2->data[0][0];
+    float max_val = layer2->output_data[0];
     for (int i = 1; i < layer1->map_count; i++)
     {
-        if (layer2->data[i][0] > max_val)
+        if (layer2->output_data[i] > max_val)
         {
-            max_val = layer2->data[i][0];
+            max_val = layer2->output_data[i];
             index = i;
         }
     }
@@ -457,18 +723,106 @@ void load_model(xmem_t *xmem, const char* filename) {
             return;
         }
         
-        for(int i = 0; i < layer1->kernel_count; i++) {
-            int size = layer1->kernel_w * layer1->kernel_h;
-            size_t read = fread(layer2->W[i], sizeof(float), size, fp);
-            if(read != size) {
-                printf("Error reading kernel weights for layer %d\n", l);
-                fclose(fp);
-                return;
+        // 根据不同的层读取卷积核权重
+        if (l == 0) { // C1层
+            for(int i = 0; i < layer1->kernel_count; i++) {
+                int size = layer1->kernel_w * layer1->kernel_h;
+                size_t read = fread(layer2->c1_W[i], sizeof(float), size, fp);
+                if(read != size) {
+                    printf("Error reading kernel weights for layer %d\n", l);
+                    fclose(fp);
+                    return;
+                }
+            }
+            
+            // 读取C1层偏置
+            for(int i = 0; i < layer1->map_count; i++) {
+                fread(&layer2->c1_b[i], sizeof(float), 1, fp);
             }
         }
-        
-        for(int i = 0; i < layer1->map_count; i++) {
-            fread(&layer2->b[i], sizeof(float), 1, fp);
+        else if (l == 1) { // S2层
+            for(int i = 0; i < layer1->kernel_count; i++) {
+                int size = layer1->kernel_w * layer1->kernel_h;
+                // S2层没有单独的卷积核，跳过它们
+                float dummy[MAX_KERNEL_SIZE];
+                size_t read = fread(dummy, sizeof(float), size, fp);
+                if(read != size) {
+                    printf("Error reading kernel weights for layer %d\n", l);
+                    fclose(fp);
+                    return;
+                }
+            }
+            
+            // 读取S2层偏置
+            for(int i = 0; i < layer1->map_count; i++) {
+                fread(&layer2->s2_b[i], sizeof(float), 1, fp);
+            }
+        }
+        else if (l == 2) { // C3层
+            for(int i = 0; i < layer1->kernel_count; i++) {
+                int size = layer1->kernel_w * layer1->kernel_h;
+                size_t read = fread(layer2->c3_W[i], sizeof(float), size, fp);
+                if(read != size) {
+                    printf("Error reading kernel weights for layer %d\n", l);
+                    fclose(fp);
+                    return;
+                }
+            }
+            
+            // 读取C3层偏置
+            for(int i = 0; i < layer1->map_count; i++) {
+                fread(&layer2->c3_b[i], sizeof(float), 1, fp);
+            }
+        }
+        else if (l == 3) { // S4层
+            for(int i = 0; i < layer1->kernel_count; i++) {
+                int size = layer1->kernel_w * layer1->kernel_h;
+                // S4层没有单独的卷积核，跳过它们
+                float dummy[MAX_KERNEL_SIZE];
+                size_t read = fread(dummy, sizeof(float), size, fp);
+                if(read != size) {
+                    printf("Error reading kernel weights for layer %d\n", l);
+                    fclose(fp);
+                    return;
+                }
+            }
+            
+            // 读取S4层偏置
+            for(int i = 0; i < layer1->map_count; i++) {
+                fread(&layer2->s4_b[i], sizeof(float), 1, fp);
+            }
+        }
+        else if (l == 4) { // C5层
+            for(int i = 0; i < layer1->kernel_count; i++) {
+                int size = layer1->kernel_w * layer1->kernel_h;
+                size_t read = fread(layer2->c5_W[i], sizeof(float), size, fp);
+                if(read != size) {
+                    printf("Error reading kernel weights for layer %d\n", l);
+                    fclose(fp);
+                    return;
+                }
+            }
+            
+            // 读取C5层偏置
+            for(int i = 0; i < layer1->map_count; i++) {
+                fread(&layer2->c5_b[i], sizeof(float), 1, fp);
+            }
+        }
+        else if (l == 5) { // 输出层
+            for(int i = 0; i < layer1->kernel_count; i++) {
+                int size = layer1->kernel_w * layer1->kernel_h;
+                size_t read = fread(layer2->output_W[i], sizeof(float), size, fp);
+                if(read != size) {
+                    printf("Error reading kernel weights for layer %d\n", l);
+                    fclose(fp);
+                    return;
+                }
+            }
+            
+            // 读取输出层偏置
+            for(int i = 0; i < layer1->map_count; i++) {
+                fread(&layer2->output_b[i], sizeof(float), 1, fp);
+            }
         }
     }
     fclose(fp);
@@ -509,14 +863,14 @@ int predict_single_image(xmem_t *xmem, const char* image_path) {
     float* image_data = (float*)malloc(width * height * sizeof(float));
     load_and_preprocess_image(image_path, image_data);
     
-    memcpy(xmem->input_layer2.data[0], image_data, width * height * sizeof(float));
+    memcpy(xmem->input_layer2.input_data[0], image_data, width * height * sizeof(float));
     
     forward_propagation(xmem);
     
     float max_prob = -1;
     int prediction = 0;
     for (int i = 0; i < 10; i++) {
-        float prob = xmem->output_layer2.data[i][0];
+        float prob = xmem->output_layer2.output_data[i];
         if (prob > max_prob) {
             max_prob = prob;
             prediction = i;
